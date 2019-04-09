@@ -48,6 +48,7 @@ func TestValidate(t *testing.T) {
 				assert.NewNumber(),
 			),
 		),
+		assert.NewNotBlank().Field("Other").Group("other"),
 	)
 
 	v := New(coll)

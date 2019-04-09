@@ -10,6 +10,10 @@ import (
 	"github.com/yinhylin/validator/validation"
 )
 
+const (
+	GroupDefault = "default"
+)
+
 type Validator struct {
 	collection      *assert.Collection
 	validations     []*validation.Validation
@@ -44,6 +48,9 @@ func (v *Validator) Validate(input interface{}, output interface{}, groups ...st
 	}
 
 	v.reset()
+	if len(groups) == 0 {
+		groups = append(groups, GroupDefault)
+	}
 	v.groups = groups
 	v.collection.SetFieldType(ot)
 
@@ -82,7 +89,7 @@ func (v *Validator) validate(input interface{}, c assert.Interface, p assert.Int
 					panic(assert.ErrAbortAll)
 				}
 
-				if c.GetField() != p.GetField() {
+				if p == nil || c.GetField() != p.GetField() {
 					return
 				}
 			}
@@ -113,12 +120,22 @@ func (v *Validator) validate(input interface{}, c assert.Interface, p assert.Int
 }
 
 func (v *Validator) BeforeValidate(child assert.Interface, parent assert.Interface) {
+	if parent != nil && len(child.GetGroups()) == 0 {
+		child.AddGroup(GroupDefault)
+	}
 	if parent != nil {
 		// 子规则继承父级字段和分组
 		child.ExtendField(parent.GetField())
 		child.ExtendGroup(parent.GetGroups())
 	}
 	child.BeforeValidate(parent)
+
+	// 将不符合请求的group的规则进行过滤
+	if parent != nil {
+		if !v.InGroup(v.groups, child.GetGroups()) {
+			panic(assert.ErrAbort)
+		}
+	}
 }
 
 func (v *Validator) reset() {
@@ -176,4 +193,16 @@ func (v *Validator) processGroup(input interface{}, c assert.Interface, p assert
 		}
 	}
 	return in
+}
+
+// InGroup 判断两个group中是否存在相同的值
+func (v *Validator) InGroup(requestGroups []string, groups []string) bool {
+	for _, rg := range requestGroups {
+		for _, g := range groups {
+			if rg == g {
+				return true
+			}
+		}
+	}
+	return false
 }

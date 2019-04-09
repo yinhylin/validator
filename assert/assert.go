@@ -3,10 +3,11 @@ package assert
 import (
 	"errors"
 	"fmt"
-	"github.com/yinhylin/validator/validation"
 	"reflect"
 	"sort"
 	"strings"
+
+	"github.com/yinhylin/validator/validation"
 )
 
 var (
@@ -114,7 +115,6 @@ func (a *Assert) GetTagField() string {
 		panic(fmt.Errorf("assert field not setted"))
 	}
 
-	fmt.Errorf("%v____________\n", a.GetFieldType().Kind().String())
 	sf, ok := a.GetFieldType().FieldByName(a.field)
 	if !ok {
 		panic(fmt.Errorf("struct field - %s not found", a.field))
@@ -166,6 +166,7 @@ func (a *Assert) AddGroup(group ...string) {
 		}
 		last = g
 	}
+	a.groups = groups
 }
 
 func (a *Assert) ExtendField(field string) {
