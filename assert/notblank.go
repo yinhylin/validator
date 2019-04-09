@@ -1,8 +1,9 @@
 package assert
 
 import (
-	"github.com/yinhylin/validator/validation"
 	"reflect"
+
+	"github.com/yinhylin/validator/validation"
 )
 
 type NotBlank struct {
@@ -16,11 +17,15 @@ func NewNotBlank() *NotBlank {
 }
 
 func (n *NotBlank) Validate(input interface{}) (valid *validation.Validation, output interface{}) {
-	it := reflect.TypeOf(input)
-	if input == nil || (it.Kind() == reflect.String && input.(string) == "") {
+	if IsBlank(input) {
 		valid = n.BuildValidation(n.GetMessage(), M{"name": n.GetTagField()})
 		return
 	}
 	output = input
 	return
+}
+
+func IsBlank(input interface{}) bool {
+	it := reflect.TypeOf(input)
+	return input == nil || (it.Kind() == reflect.String && input.(string) == "")
 }

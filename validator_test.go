@@ -1,8 +1,9 @@
 package validator
 
 import (
-	"github.com/yinhylin/validator/assert"
 	"testing"
+
+	"github.com/yinhylin/validator/assert"
 )
 
 type TestPerson struct {
@@ -29,7 +30,7 @@ func TestValidate(t *testing.T) {
 	val["user_id"] = "212332"
 	val["Password"] = 123
 	val["spouse"] = map[string]interface{}{"name": "foo", "age": 2}
-	val["children"] = []map[string]interface{}{{"name": "child1", "age": 8}, {"name": "child2", "age": 3}}
+	val["children"] = []map[string]interface{}{{"name": "child1", "age": "8"}, {"name": "child2", "age": 3}}
 
 	coll := assert.NewCollection().Item(
 		assert.NewNotBlank().Field("UserId"),
@@ -42,7 +43,10 @@ func TestValidate(t *testing.T) {
 		),
 		assert.NewGroup().Field("Children").Item(
 			assert.NewNotBlank().Field("Name"),
-			assert.NewNotBlank().Field("Age"),
+			assert.NewRequired().Field("Age").Item(
+				assert.NewNotBlank(),
+				assert.NewNumber(),
+			),
 		),
 	)
 
