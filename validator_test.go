@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/yinhylin/validator/assert"
@@ -26,11 +27,8 @@ func TestValidate(t *testing.T) {
 	in := &TestPerson{}
 
 	val := make(map[string]interface{})
-	val["mobile"] = "123"
-	val["user_id"] = "212332"
-	val["Password"] = 123
-	val["spouse"] = map[string]interface{}{"name": "foo", "age": 2}
-	val["children"] = []map[string]interface{}{{"name": "child1", "age": "8"}, {"name": "child2", "age": 3}}
+	text := `{"mobile":"123","user_id":"212332","Password":123,"spouse":{"name":"foo","age": 2},"children":[{"name":"child1","age":"8"},{"name":"foo","age":2}]}`
+	json.Unmarshal([]byte(text), &val)
 
 	coll := assert.NewCollection().Item(
 		assert.NewNotBlank().Field("UserId"),

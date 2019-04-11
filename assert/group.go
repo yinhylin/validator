@@ -6,12 +6,14 @@ import (
 
 type Group struct {
 	Assert
-	items []Interface
+	items       []Interface
+	itemMessage string
 }
 
 func NewGroup() *Group {
 	n := BuildAssert(&Group{}).(*Group)
-	n.Message("{{name}} should be []interface{}")
+	n.Message("{{name}} should be an array")
+	n.itemMessage = "{{name}} item should be an object"
 	return n
 }
 
@@ -40,10 +42,17 @@ func (c *Group) BeforeValidate(parent Interface) {
 }
 
 func (c *Group) Validate(input interface{}) (valid *validation.Validation, output interface{}) {
-	if _, ok := input.([]map[string]interface{}); !ok {
+	if _, ok := input.([]interface{}); !ok {
 		valid = c.BuildValidation(c.GetMessage(), M{"name": c.GetTagField()})
 		return
 	}
+	for _, i := range input.([]interface{}) {
+		if _, ok := i.(map[string]interface{}); !ok {
+			valid = c.BuildValidation(c.itemMessage, M{"name": c.GetTagField()})
+			return
+		}
+	}
+
 	output = input
 
 	return

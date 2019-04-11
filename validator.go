@@ -180,9 +180,9 @@ func (v *Validator) processSubordinate(input interface{}, c assert.Interface, p 
 }
 
 func (v *Validator) processGroup(input interface{}, c assert.Interface, p assert.Interface) interface{} {
-	in := make([]map[string]interface{}, len(input.([]map[string]interface{})))
+	in := make([]map[string]interface{}, len(input.([]interface{})))
 
-	for k, item := range input.([]map[string]interface{}) {
+	for k, item := range input.([]interface{}) {
 		in[k] = make(map[string]interface{})
 		sf, _ := c.GetFieldType().FieldByName(c.GetField())
 		for _, i := range c.GetItems() {
@@ -192,7 +192,7 @@ func (v *Validator) processGroup(input interface{}, c assert.Interface, p assert
 			i.SetFieldType(sf.Type.Elem())
 			field := i.GetTagField()
 
-			val, ok := item[field]
+			val, ok := item.(map[string]interface{})[field]
 			if ok {
 				in[k][field] = v.validate(val, i, c)
 			} else {
