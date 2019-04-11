@@ -119,7 +119,8 @@ func (v *Validator) validate(input interface{}, c assert.Interface, p assert.Int
 	return
 }
 
-func (v *Validator) BeforeValidate(child assert.Interface, parent assert.Interface) {
+// BeforeValidate 需要终止后续验证时，需要返回false
+func (v *Validator) BeforeValidate(child assert.Interface, parent assert.Interface) bool {
 	if parent != nil && len(child.GetGroups()) == 0 {
 		child.AddGroup(GroupDefault)
 	}
@@ -133,9 +134,10 @@ func (v *Validator) BeforeValidate(child assert.Interface, parent assert.Interfa
 	// 将不符合请求的group的规则进行过滤
 	if parent != nil {
 		if !v.InGroup(v.groups, child.GetGroups()) {
-			panic(assert.ErrAbort)
+			return false
 		}
 	}
+	return true
 }
 
 func (v *Validator) reset() {
@@ -144,7 +146,9 @@ func (v *Validator) reset() {
 
 func (v *Validator) processSame(input interface{}, c assert.Interface, p assert.Interface) interface{} {
 	for _, i := range c.GetItems() {
-		v.BeforeValidate(i, c)
+		if !v.BeforeValidate(i, c) {
+			continue
+		}
 		i.SetFieldType(c.GetFieldType())
 		input = v.validate(input, i, c)
 	}
@@ -154,7 +158,9 @@ func (v *Validator) processSame(input interface{}, c assert.Interface, p assert.
 func (v *Validator) processSubordinate(input interface{}, c assert.Interface, p assert.Interface) interface{} {
 	in := input.(map[string]interface{})
 	for _, i := range c.GetItems() {
-		v.BeforeValidate(i, c)
+		if !v.BeforeValidate(i, c) {
+			continue
+		}
 		if p != nil {
 			sf, _ := c.GetFieldType().FieldByName(c.GetField())
 			i.SetFieldType(sf.Type)
@@ -180,7 +186,9 @@ func (v *Validator) processGroup(input interface{}, c assert.Interface, p assert
 		in[k] = make(map[string]interface{})
 		sf, _ := c.GetFieldType().FieldByName(c.GetField())
 		for _, i := range c.GetItems() {
-			v.BeforeValidate(i, c)
+			if !v.BeforeValidate(i, c) {
+				continue
+			}
 			i.SetFieldType(sf.Type.Elem())
 			field := i.GetTagField()
 
